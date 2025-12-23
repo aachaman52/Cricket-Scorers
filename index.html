@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Aachman Studios – Cricket Scorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2e7d32">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span id="pageTitle">Cricket Scorer</span>
+  <img src="logo.png" class="logo-img">
+</div>
+
+<!-- MODE SELECT -->
+<div id="modeSelect" class="screen">
+  <div class="card">
+    <h3>Select Mode</h3>
+    <button class="primary" onclick="selectMode('normal')">Normal Match</button>
+    <button onclick="selectMode('tournament')">Tournament</button>
+  </div>
+</div>
+
+<!-- NORMAL MATCH SETUP -->
+<div id="newMatch" class="screen hidden">
+
+  <div class="card">
+    <h3>Players per Team</h3>
+    <input id="playersInput" type="number" value="11" min="2">
+  </div>
+
+  <div class="card">
+    <h3>Teams</h3>
+    <input id="host" placeholder="Host Team">
+    <input id="visitor" placeholder="Visitor Team">
+  </div>
+
+  <div class="card">
+    <h3>Toss Won By</h3>
+    <label class="row"><input type="radio" name="toss" value="host" checked> Host</label>
+    <label class="row"><input type="radio" name="toss" value="visitor"> Visitor</label>
+  </div>
+
+  <div class="card">
+    <h3>Opted To</h3>
+    <label class="row"><input type="radio" name="opt" value="bat" checked> Bat</label>
+    <label class="row"><input type="radio" name="opt" value="bowl"> Bowl</label>
+  </div>
+
+  <div class="card">
+    <h3>Match Type</h3>
+    <label class="row">
+      <input type="checkbox" id="isTest" onchange="toggleTest()"> Test Match
+    </label>
+    <label class="row">
+      <input type="checkbox" id="lastManStanding"> Last Man Standing
+    </label>
+  </div>
+
+  <div class="card">
+    <h3>Overs</h3>
+    <input id="oversInput" type="number" value="16">
+  </div>
+
+  <button class="primary" onclick="startMatch()">Start Match</button>
+</div>
+
+<!-- MATCH -->
+<div id="match" class="screen hidden">
+
+  <!-- TABS -->
+  <div class="card row space">
+    <button onclick="showTab('score')">Score</button>
+    <button onclick="showTab('analysis')">Analysis</button>
+  </div>
+
+  <!-- SCORE TAB -->
+  <div id="scoreTab">
+
+    <div class="score-card">
+      <h1 id="scoreText">0 - 0</h1>
+      <p id="oversText">0.0 overs</p>
+      <p>CRR: <span id="crr">0.00</span></p>
+    </div>
+
+    <div class="card">
+      <h4>Bowler</h4>
+      <div class="row space">
+        <span id="bowlerName">-</span>
+        <span id="bowlerOver">0.0</span>
+      </div>
+      <div id="thisOver" class="over-balls"></div>
+    </div>
+
+    <div class="card">
+      <h4>Batsmen</h4>
+      <div class="table">
+        <div class="table-header">
+          <span>Name</span><span>R</span><span>B</span><span>SR</span><span>4s</span><span>6s</span>
+        </div>
+
+        <div class="table-row">
+          <span id="bat1Name"></span>
+          <span id="bat1Runs">0</span>
+          <span id="bat1Balls">0</span>
+          <span id="bat1SR">0.00</span>
+          <span id="bat1Fours">0</span>
+          <span id="bat1Sixes">0</span>
+        </div>
+
+        <div class="table-row">
+          <span id="bat2Name"></span>
+          <span id="bat2Runs">0</span>
+          <span id="bat2Balls">0</span>
+          <span id="bat2SR">0.00</span>
+          <span id="bat2Fours">0</span>
+          <span id="bat2Sixes">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card row space">
+      <label class="row"><input type="checkbox" id="wide" onchange="toggleExtras('wide')"> Wide</label>
+      <label class="row"><input type="checkbox" id="noball" onchange="toggleExtras('noball')"> No Ball</label>
+    </div>
+
+    <div class="runs">
+      <button onclick="addRun(0)">0</button>
+      <button onclick="addRun(1)">1</button>
+      <button onclick="addRun(2)">2</button>
+      <button onclick="addRun(3)">3</button>
+      <button onclick="addRun(4)">4</button>
+      <button onclick="addRun(6)">6</button>
+      <button onclick="openWicket()">W</button>
+      <button onclick="manualSwap()">Swap</button>
+      <button onclick="retireBatsman()">Retire</button>
+      <button onclick="undo()">Undo</button>
+    </div>
+
+  </div>
+
+  <!-- ANALYSIS TAB -->
+  <div id="analysisTab" class="hidden">
+    <div class="card">
+      <h3>Worm Graph</h3>
+      <canvas id="wormChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- START INNINGS OVERLAY -->
+<div id="startSetup" class="overlay hidden">
+  <h3>Start Innings</h3>
+  <input id="startStriker" placeholder="Striker">
+  <input id="startNonStriker" placeholder="Non-Striker">
+  <input id="startBowler" placeholder="Bowler">
+  <button class="primary" onclick="confirmStart()">Start</button>
+</div>
+
+<!-- WICKET OVERLAY -->
+<div id="wicketOverlay" class="overlay hidden">
+  <h3>Fall of Wicket</h3>
+  <button class="primary" onclick="confirmWicket()">Confirm</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+
+<script>
+function selectMode(mode) {
+  modeSelect.classList.add("hidden");
+  if (mode === "normal") {
+    newMatch.classList.remove("hidden");
+    pageTitle.innerText = "New Match";
+  }
+}
+</script>
+
+</body>
+</html>
