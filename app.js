@@ -22,6 +22,14 @@ let lastManRuleEnabled = false;
 /* Innings */
 let innings = 1;
 let target = null;
+let innings1Overs = [];
+let innings1Runs = [];
+
+let innings2Overs = [];
+let innings2Runs = [];
+
+let wormChart = null;
+
 
 /* ================= DOM CACHE ================= */
 const scoreTab = document.getElementById("scoreTab");
@@ -184,6 +192,13 @@ function addRun(r) {
   if (r % 2 === 1 && !lastManStanding()) {
     swapStrike();
   }
+  // CHASE COMPLETE
+if (innings === 2 && target !== null && runs >= target) {
+  alert("Match Complete\nBatting team won");
+  saveMatch();
+  return;
+}
+
 
   if (balls === 6) endOver();
   updateUI();
@@ -200,36 +215,58 @@ function openWicket() {
 
 function confirmWicket() {
   saveState();
-  ensureThisOverDiv();
 
   wickets++;
   balls++;
   thisOver.push("W");
+
   wicketOverlay.classList.add("hidden");
 
-  if (
-    (!lastManRuleEnabled && wickets === playersPerTeam - 1) ||
-    (lastManRuleEnabled && wickets === playersPerTeam)
-  ) {
+  /* ================= LAST MAN STANDING MODE ================= */
+  if (lastManRuleEnabled) {
+
+    // If last man ALSO got out → innings ends
+    if (wickets === playersPerTeam) {
+      endInnings();
+      return;
+    }
+
+    // If only one batsman left → he continues alone
+    if (batsmenLeft() === 1) {
+      updateUI();
+      return;
+    }
+  }
+
+  /* ================= NORMAL MODE ================= */
+  if (!lastManRuleEnabled && wickets === playersPerTeam - 1) {
     endInnings();
     return;
   }
 
-  if (lastManStanding()) {
-    updateUI();
+  /* ================= NEW BATSMAN ================= */
+  const name = prompt("New batsman name");
+  if (!name) {
+    // Undo wicket if cancelled
+    wickets--;
+    balls--;
+    thisOver.pop();
     return;
   }
 
-  const name = prompt("New batsman name");
-  if (!name) return;
-
   batsmen[strikerIndex] = {
-    name, runs: 0, balls: 0, fours: 0, sixes: 0
+    name,
+    runs: 0,
+    balls: 0,
+    fours: 0,
+    sixes: 0
   };
 
   if (balls === 6) endOver();
   updateUI();
 }
+
+
 
 /* ================= RETIRE ================= */
 function retireBatsman() {
@@ -247,9 +284,18 @@ function retireBatsman() {
 
 /* ================= OVER ================= */
 function endOver() {
-  saveState();
   balls = 0;
   overs++;
+
+  if (innings === 1) {
+    innings1Overs.push(overs);
+    innings1Runs.push(runs);
+  } else {
+    innings2Overs.push(overs);
+    innings2Runs.push(runs);
+  }
+
+  drawWormChart();
 
   if (maxOvers !== null && overs >= maxOvers) {
     endInnings();
@@ -259,8 +305,8 @@ function endOver() {
   if (!lastManStanding()) swapStrike();
   bowler = prompt("New Bowler", bowler) || bowler;
   thisOver = [];
-  updateUI();
 }
+
 
 /* ================= INNINGS ================= */
 function endInnings() {
@@ -284,11 +330,17 @@ function resetInnings() {
     { name: "", runs: 0, balls: 0, fours: 0, sixes: 0 },
     { name: "", runs: 0, balls: 0, fours: 0, sixes: 0 }
   ];
+  if (innings === 2) {
+  innings2Overs = [];
+  innings2Runs = [];
+}
+
   updateUI();
 }
 
 /* ================= UI ================= */
 function swapStrike() {
+  if (lastManStanding()) return;
   strikerIndex = 1 - strikerIndex;
 }
 
@@ -334,6 +386,13 @@ function updateUI() {
       b === "6"  ? "ball-6"  : "ball-0";
     thisOverDiv.appendChild(x);
   });
+  if (lastManStanding()) {
+  bat2Name.innerText = "—";
+  bat2Runs.innerText = "-";
+  bat2Balls.innerText = "-";
+  bat2SR.innerText = "-";
+}
+
 }
 
 /* ================= TABS ================= */
@@ -351,3 +410,57 @@ function saveMatch() {
   h.push(`${pageTitle.innerText} – ${runs}/${wickets}`);
   localStorage.setItem("history", JSON.stringify(h));
 }
+function drawWormChart() {
+  const ctx = document.getElementById("wormChart");
+  if (!ctx) return;
+
+  if (wormChart) wormChart.destroy();
+
+  wormChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      datasets: [
+        {
+          label: "Innings 1",
+          data: innings1Overs.map((o, i) => ({
+            x: o,
+            y: innings1Runs[i]
+          })),
+          borderColor: "#90caf9",
+          backgroundColor: "#90caf9",
+          tension: 0.35,
+          pointRadius: 3
+        },
+        {
+          label: "Innings 2",
+          data: innings2Overs.map((o, i) => ({
+            x: o,
+            y: innings2Runs[i]
+          })),
+          borderColor: "#66bb6a",
+          backgroundColor: "#66bb6a",
+          tension: 0.35,
+          pointRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true }
+      },
+      scales: {
+        x: {
+          type: "linear",
+          title: { display: true, text: "Overs" },
+          ticks: { stepSize: 5 }
+        },
+        y: {
+          title: { display: true, text: "Runs" },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
