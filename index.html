@@ -3,25 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Scorer: Master Fixed</title>
+    <title>Pro Scorer: Final Master</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        #splash {
+       position: fixed;
+       inset: 0;
+       background: #0f172a;
+       display: flex;
+       align-items: center;
+        justify-content: center;
+        z-index: 5;
+       }
+
+.splash-box {
+  text-align: center;
+  color: white;
+}
+
+.splash-box h1 {
+  margin: 10px 0 5px;
+}
+
+.splash-box p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
         :root { --bg: #0f172a; --panel: #1e293b; --primary: #3b82f6; --accent: #22c55e; --danger: #ef4444; --gold: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; user-select: none; }
-        .container { max-width: 600px; margin: auto; padding: 10px; }
+        .container { max-width: 600px; margin: auto; padding: 10px; position: relative; z-index: 2; }
 
-        /* UI */
+        /* UI COMPONENTS */
         .card { background: var(--panel); padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #334155; }
         .nav { display: flex; background: var(--panel); padding: 5px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #334155; }
         .nav-item { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: var(--muted); font-weight: bold; font-size: 0.85rem; }
         .nav-item.active { background: var(--primary); color: white; border-radius: 6px; }
-        
         .section { display: none; }
         .section.active { display: block; }
         .hidden { display: none !important; }
 
-        /* LIVE SCORE */
-        .score-box { text-align: center; background: linear-gradient(135deg, #1e40af, #1e3a8a); padding: 20px; border-radius: 12px; margin-top: 10px; margin-bottom: 10px; position: relative; }
+        /* SCOREBOARD */
+        .score-box { text-align: center; background: linear-gradient(135deg, #1e40af, #1e3a8a); padding: 20px; border-radius: 12px; margin-top: 10px; margin-bottom: 10px; }
         .big-score { font-size: 3.5rem; font-weight: 800; margin: 5px 0; line-height: 1; }
         .stat-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: #bfdbfe; margin-top: 5px; }
         
@@ -36,7 +59,7 @@
         /* CONTROLS */
         .controls { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--panel); padding: 10px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; z-index: 100; max-width: 600px; left: 50%; transform: translateX(-50%); border-top: 1px solid #334155; }
         button { border: none; border-radius: 6px; padding: 12px 0; font-weight: bold; color: white; cursor: pointer; font-size: 1rem; }
-        .btn-dis { opacity: 0.5; pointer-events: none; }
+        .btn-dis { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
         input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 5px; box-sizing: border-box; margin-bottom: 8px; font-size: 1rem; }
 
         /* OVERLAY & MODALS */
@@ -44,6 +67,7 @@
         .tv-card { background: #1e293b; padding: 30px; border-radius: 15px; border: 2px solid var(--gold); width:80%; max-width:300px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; align-items: center; justify-content: center; }
         .modal-box { background: var(--panel); padding: 20px; width: 90%; max-width: 350px; border-radius: 10px; border: 1px solid #475569; }
+        
         .match-card { background: #334155; padding: 10px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--muted); }
         .match-card.done { border-left-color: var(--accent); opacity: 0.8; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -52,6 +76,14 @@
     </style>
 </head>
 <body onload="init()">
+    <div id="splash">
+  <div class="splash-box">
+    <img src="logo.png" width="100" length="100" alt="Logo">
+    <h1>Pro Scorer</h1>
+    <p>Loading match engine…</p>
+  </div>
+</div>
+
 
 <div id="tv-overlay"><div class="tv-card">
     <div id="tv-icon" style="font-size:3rem; margin-bottom:10px;">🏆</div>
@@ -70,16 +102,13 @@
     <div id="home-quick" class="sub-sec">
         <div class="card">
             <h2 style="color:var(--primary); margin-top:0; text-align:center;">MATCH SETUP</h2>
-            
             <label style="color:var(--gold); font-size:0.8rem;">METADATA</label>
             <input id="q-ground" placeholder="Ground / Stadium">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 <input id="q-city" placeholder="City">
-                <select id="q-type"><option>T20</option><option>ODI</option><option>Test</option><option>Friendly</option></select>
+                <select id="q-type"><option>T20</option><option>ODI</option><option>Test</option></select>
             </div>
-            
             <hr style="border-color:#334155; margin:15px 0;">
-
             <label style="color:var(--gold); font-size:0.8rem;">TEAMS</label>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 <input id="q-t1" placeholder="Team A (Bat)">
@@ -90,11 +119,9 @@
             <input id="q-s" placeholder="Striker">
             <input id="q-ns" placeholder="Non-Striker">
             <input id="q-b" placeholder="Bowler">
-            
             <label style="display:flex; align-items:center; margin-top:10px; font-size:0.9rem;">
                 <input type="checkbox" id="q-lms" style="width:auto; margin-right:8px;"> Last Man Standing
             </label>
-            
             <button onclick="startQuick()" style="width:100%; background:var(--accent); margin-top:15px;">START MATCH</button>
         </div>
     </div>
@@ -148,13 +175,8 @@
             </div>
             <div id="ui-target" class="hidden" style="margin-top:5px; color:var(--gold); font-weight:bold;">Target: 0</div>
         </div>
-        
         <div class="card"><div id="ui-bats"></div></div>
-        
-        <div class="card">
-            <div id="ui-bowl"></div>
-            <div id="ui-over" style="display:flex;gap:5px;margin-top:5px;overflow-x:auto;"></div>
-        </div>
+        <div class="card"><div id="ui-bowl"></div><div id="ui-over" style="display:flex;gap:5px;margin-top:5px;overflow-x:auto;"></div></div>
     </div>
 
     <div id="gm-card" class="gm-sub hidden"><div class="card"><div id="full-card"></div></div></div>
@@ -205,7 +227,6 @@
 </div></div>
 
 <script>
-/* === CORE STATE & CONSTANTS === */
 const STATUS = { LIVE: 'LIVE', BREAK: 'BREAK', FINISHED: 'FINISHED' };
 const G_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -216,7 +237,6 @@ function init() {
     if(localStorage.getItem('activeTr')) document.getElementById('active-tr-btn').classList.remove('hidden');
 }
 
-/* === NAVIGATION === */
 function tab(area, t, el) {
     document.getElementById('home-quick').classList.add('hidden');
     document.getElementById('home-tourn').classList.add('hidden');
@@ -240,15 +260,16 @@ function gmTab(t, el) {
     document.querySelectorAll('#view-game .nav-item').forEach(e => e.classList.remove('active'));
     if(el) el.classList.add('active');
     
-    // Explicit Triggers
     if(t==='card') renderCard();
     if(t==='analysis') renderAnalysis(); 
     if(t==='live') updateUI();
 }
 
-function openActions() { mod('m-act'); }
+function openActions() {
+    document.getElementById('m-act').style.display = 'flex';
+}
 
-/* === OVERLAY === */
+
 function showOverlay(title, msg, icon, cb) {
     document.getElementById('tv-title').innerText = title;
     document.getElementById('tv-msg').innerText = msg;
@@ -262,7 +283,6 @@ function closeOverlay() {
     overlayCallback = null;
 }
 
-/* === TOURNAMENT LOGIC === */
 function renderGroups() {
     let tot = parseInt(document.getElementById('tr-total').value);
     let div = document.getElementById('tr-inputs');
@@ -315,6 +335,8 @@ function resumeTourn() {
     renderTrUI();
 }
 
+function openTourn() { resumeTourn(); }
+
 function closeTourn() {
     document.getElementById('view-tourn').classList.remove('active');
     document.getElementById('view-home').classList.add('active');
@@ -358,7 +380,6 @@ function playTr(idx) {
     });
 }
 
-/* === GAMEPLAY === */
 function startQuick() {
     mode = 'quick';
     initGame({
@@ -391,244 +412,422 @@ function initGame(cfg) {
     updateUI();
 }
 
-// === CENTRAL LOGIC GUARD ===
 function checkFlow() {
+    if(g.status === STATUS.FINISHED) return true;
+    
     let max = g.meta.lms ? g.meta.pl : g.meta.pl - 1;
-    // 2. Immediate End Checks
-    if (g.inn === 2 && g.target && g.sc.r >= g.target) { finish("Target Chased"); return true; }
+    
+    if (g.inn === 2 && g.target && g.sc.r >= g.target) { 
+        finish("Target Chased"); 
+        return true; 
+    }
+    
     if (g.sc.w >= max) {
-        if (g.inn === 1) endInn(); else finish("All Out");
+        if (g.inn === 1) {
+            endInn();
+        } else {
+            finish("All Out");
+        }
         return true;
     }
+    
     return false;
 }
 
 function run(r) {
     if(g.status !== STATUS.LIVE) return;
-    if(checkFlow()) return;
     save();
-    g.sc.r+=r; g.sc.b++; g.bats[g.s].r+=r; g.bats[g.s].b++; g.bowl[g.cb].r+=r; g.bowl[g.cb].b++; g.thisOv.push(r);
-    // 6. Swap Logic (Striker)
-    if(r%2!==0) swap(); 
-    checkFlow(); checkOv(); updateUI();
+    
+    g.sc.r+=r; 
+    g.sc.b++; 
+    g.bats[g.s].r+=r; 
+    g.bats[g.s].b++; 
+    g.bowl[g.cb].r+=r; 
+    g.bowl[g.cb].b++; 
+    g.thisOv.push(r);
+    
+    if(r%2!==0 && !isLastMan()) swap(); 
+    
+    if(checkFlow()) return;
+    checkOv(); 
+    updateUI();
 }
 
 function ex(t,r) {
     if(g.status !== STATUS.LIVE) return;
-    closeMod('m-wd'); closeMod('m-nb'); 
-    if(checkFlow()) return; 
+    closeMod('m-wd'); 
+    closeMod('m-nb'); 
     save();
-    if(t==='WD') { g.sc.r++; g.bowl[g.cb].r++; }
-    else { g.sc.r+=(1+r); g.bowl[g.cb].r+=(1+r); g.bats[g.s].r+=r; g.bats[g.s].b++; if(r%2!==0) swap(); }
+    
+    if(t==='WD') { 
+        g.sc.r++; 
+        g.bowl[g.cb].r++; 
+    } else { 
+        g.sc.r+=(1+r); 
+        g.bowl[g.cb].r+=(1+r); 
+        g.bats[g.s].r+=r; 
+        g.bats[g.s].b++; 
+        if(r%2!==0 && !isLastMan()) swap(); 
+    }
+    
     g.thisOv.push(t+(r>0?'+'+r:'')); 
-    checkFlow(); updateUI();
+    
+    if(checkFlow()) return;
+    updateUI();
 }
 
-function wkt() { if(g.status === STATUS.LIVE) mod('m-wkt'); }
+function wkt() { 
+    // WAS: if(g.status === STATUS.LIVE) mod('m-wkt'); 
+    if(g.status === STATUS.LIVE) mod('wkt'); // <-- CHANGE TO THIS
+}
+
 function confWkt() {
-    closeMod('m-wkt'); save();
-    let t=document.getElementById('w-type').value; let v=(t==='Run Out' && document.getElementById('w-who').value==='ns')?g.ns:g.s;
-    g.bats[v].out=true; g.bats[v].how=t; g.sc.w++; g.sc.b++; g.thisOv.push('W'); g.bowl[g.cb].b++; if(t!=='Run Out') g.bowl[g.cb].w++;
+    closeMod('m-wkt'); 
+    save();
     
-    // 1. LMS WICKET LOGIC
-    let max = g.meta.lms ? g.meta.pl : g.meta.pl-1;
+    let t = document.getElementById('w-type').value; 
+    let who = document.getElementById('w-who').value;
+    let v = (t === 'Run Out' && who === 'ns') ? g.ns : g.s;
+    
+    g.bats[v].out = true; 
+    g.bats[v].how = t; 
+    g.sc.w++; 
+    g.sc.b++; 
+    g.thisOv.push('W'); 
+    g.bowl[g.cb].b++; 
+    
+    if(t !== 'Run Out') g.bowl[g.cb].w++;
+    
+    let max = g.meta.lms ? g.meta.pl : g.meta.pl - 1;
+    
     if(g.sc.w >= max) {
-        checkFlow(); 
+        if(checkFlow()) return;
     } else {
-        if(g.meta.lms && g.sc.w === g.meta.pl-1) { 
-            // Striker Out -> NS becomes Striker, NS = -1
-            // NS Out -> Striker stays, NS = -1
-            if(v === g.s) g.s = g.ns;
+        if(g.meta.lms && g.sc.w === g.meta.pl - 1) { 
+            if(v === g.s) {
+                g.s = g.ns;
+            }
             g.ns = -1; 
         } else {
-            let n=document.getElementById('w-new').value||"Bat "+(g.bats.length+1);
-            g.bats.push({n:n,r:0,b:0,out:false});
-            if(v===g.s) g.s=g.bats.length-1; else g.ns=g.bats.length-1;
+            let n = document.getElementById('w-new').value || "Bat " + (g.bats.length + 1);
+            g.bats.push({n:n, r:0, b:0, out:false});
+            if(v === g.s) {
+                g.s = g.bats.length - 1;
+            } else {
+                g.ns = g.bats.length - 1;
+            }
         }
     }
     
-    checkFlow(); checkOv(); updateUI();
+    document.getElementById('w-new').value = '';
+    
+    if(checkFlow()) return;
+    checkOv(); 
+    updateUI();
 }
 
-// 1. LMS Helpers
-function isLastMan() { return g.meta.lms && g.ns === -1; }
-function swap(){ 
-    if(isLastMan()) return; 
-    [g.s, g.ns] = [g.ns, g.s]; 
+function isLastMan() { 
+    return g.meta.lms && g.ns === -1; 
+}
+function swap() {
+    if (g.meta.lms && g.ns === -1) return;
+    [g.s, g.ns] = [g.ns, g.s];
 }
 
-// 3. Worm Update on Over
+
 function checkOv() {
-    if(g.sc.b%6===0 && g.sc.b>0) {
-        if(!g.worm[g.inn-1]) g.worm[g.inn-1] = [];
-        g.worm[g.inn-1].push(g.sc.r);
+    if(g.sc.b % 6 === 0 && g.sc.b > 0) {
+        if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = [];
+        g.worm[g.inn - 1].push(g.sc.r);
+        
         swap();
-        if(Math.floor(g.sc.b/6)>=g.meta.ov) endInn(); else mod('m-bowl');
+        
+        if(Math.floor(g.sc.b / 6) >= g.meta.ov) {
+            endInn();
+        } else {
+            // WAS: mod('m-bowl');  <-- This created "m-m-bowl"
+            mod('bowl');         // <-- CHANGE TO THIS
+        }
     }
 }
+
 function confBowl() {
-    let n=document.getElementById('b-next').value; 
+    let n = document.getElementById('b-next').value; 
     document.getElementById('b-next').value = ""; 
     closeMod('m-bowl');
-    let ex=g.bowl.findIndex(b=>b.n===n); if(ex===-1) { g.bowl.push({n:n,r:0,w:0,b:0}); g.cb=g.bowl.length-1; } else g.cb=ex;
-    g.thisOv=[]; updateUI();
+    
+    let ex = g.bowl.findIndex(b => b.n === n); 
+    if(ex === -1) { 
+        g.bowl.push({n:n, r:0, w:0, b:0}); 
+        g.cb = g.bowl.length - 1; 
+    } else {
+        g.cb = ex;
+    }
+    
+    g.thisOv = []; 
+    updateUI();
 }
 
-/* === MATCH MANAGEMENT === */
-function manualEndInnings() { closeMod('m-act'); endInn(); }
+function manualEndInnings() { 
+    closeMod('m-act'); 
+    endInn(); 
+}
 
 function endInn() {
-    if(g.inn===1) {
-        g.inn1 = {t:g.meta.t1, sc:{...g.sc}, bats:JSON.parse(JSON.stringify(g.bats)), bowl:JSON.parse(JSON.stringify(g.bowl))};
-        g.target=g.sc.r+1; g.inn=2; g.sc={r:0,w:0,b:0};
-        let t=g.meta.t1; g.meta.t1=g.meta.t2; g.meta.t2=t;
-        g.bats=[{n:"P1",r:0,b:0,out:false},{n:"P2",r:0,b:0,out:false}]; g.bowl=[{n:"B1",r:0,w:0,b:0}];
-        g.s=0; g.ns=1; g.cb=0; g.thisOv=[];
+    if(g.status === STATUS.FINISHED) return;
+    
+    if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = [];
+    if(g.worm[g.inn - 1].length === 0 || g.worm[g.inn - 1][g.worm[g.inn - 1].length - 1] !== g.sc.r) {
+        g.worm[g.inn - 1].push(g.sc.r);
+    }
+    
+    if(g.inn === 1) {
+        g.inn1 = {
+            t: g.meta.t1, 
+            sc: {...g.sc}, 
+            bats: JSON.parse(JSON.stringify(g.bats)), 
+            bowl: JSON.parse(JSON.stringify(g.bowl))
+        };
+        g.target = g.sc.r + 1; 
+        g.inn = 2; 
+        g.sc = {r:0, w:0, b:0};
+        
+        let t = g.meta.t1; 
+        g.meta.t1 = g.meta.t2; 
+        g.meta.t2 = t;
+        
+        g.bats = [{n:"P1", r:0, b:0, out:false}, {n:"P2", r:0, b:0, out:false}]; 
+        g.bowl = [{n:"B1", r:0, w:0, b:0}];
+        g.s = 0; 
+        g.ns = 1; 
+        g.cb = 0; 
+        g.thisOv = [];
         g.status = STATUS.BREAK;
-        showOverlay("INNINGS BREAK", `Target: ${g.target}`, "🏏", () => { g.status = STATUS.LIVE; updateUI(); });
-    } else finish("Overs/AllOut");
+        
+        showOverlay("INNINGS BREAK", `Target: ${g.target}`, "🏏", () => { 
+            g.status = STATUS.LIVE; 
+            updateUI(); 
+        });
+    } else {
+        finish("Overs/AllOut");
+    }
 }
 
-function checkEnd() { return checkFlow(); }
-
 function finish(reason) {
-    closeMod('m-act');
-    document.querySelectorAll('.modal').forEach(m => m.style.display='none');
-    
     if(g.status === STATUS.FINISHED) return;
+    
+    closeMod('m-act'); 
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    
     g.status = STATUS.FINISHED;
 
-    // 3. Worm Final Point
-    if(!g.worm[g.inn-1]) g.worm[g.inn-1] = [];
-    if(g.worm[g.inn-1].length === 0 || g.worm[g.inn-1][g.worm[g.inn-1].length-1] !== g.sc.r){
-        g.worm[g.inn-1].push(g.sc.r);
+    if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = [];
+    if(g.worm[g.inn - 1].length === 0 || g.worm[g.inn - 1][g.worm[g.inn - 1].length - 1] !== g.sc.r) {
+        g.worm[g.inn - 1].push(g.sc.r);
     }
 
     let res = "";
-    if(reason === "Abandoned") res = "Match Abandoned";
-    else {
-        res = (g.sc.r>=g.target) ? g.meta.t1+" Won" : g.meta.t2+" Won";
+    if(reason === "Abandoned") {
+        res = "Match Abandoned";
+    } else {
+        res = (g.sc.r >= g.target) ? g.meta.t1 + " Won" : g.meta.t2 + " Won";
     }
     
-    // 6. Save History Logic
-    let h = JSON.parse(localStorage.getItem('hist')||'[]');
+    let h = JSON.parse(localStorage.getItem('hist') || '[]');
     if(!h.some(x => x.res === res && x.date === new Date().toLocaleDateString())) {
         h.unshift({
             date: new Date().toLocaleDateString(), 
             res: res, 
-            t1: g.inn1?g.inn1.t:g.meta.t1, 
+            t1: g.inn1 ? g.inn1.t : g.meta.t1, 
             t2: g.meta.t2, 
-            meta: g.meta,
-            score: `${g.sc.r}/${g.sc.w}`,
+            meta: g.meta, 
+            score: `${g.sc.r}/${g.sc.w}`, 
             inn1: g.inn1, 
-            inn2: {sc:g.sc, bats:g.bats, bowl:g.bowl}
+            inn2: {sc: g.sc, bats: g.bats, bowl: g.bowl}
         });
         localStorage.setItem('hist', JSON.stringify(h));
     }
 
-    if(mode==='tourn' && reason !== "Abandoned") {
+    if(mode === 'tourn' && reason !== "Abandoned") {
         let f = tr.fixtures[activeMatchId];
-        f.done = true; f.res = res;
+        f.done = true; 
+        f.res = res;
         
-        let batFirst = g.inn1 ? g.inn1.t : g.meta.t1;
+        let batFirst = g.inn1 ? g.inn1.t : g.meta.t1; 
         let batSecond = g.meta.t1; 
-
-        let t1Obj = tr.teams.find(t=>t.n===batFirst);
-        let t2Obj = tr.teams.find(t=>t.n===batSecond);
+        let t1Obj = tr.teams.find(t => t.n === batFirst); 
+        let t2Obj = tr.teams.find(t => t.n === batSecond);
         
-        if(t1Obj) {
+        if(t1Obj) { 
             t1Obj.p++; 
             t1Obj.rf += (g.inn1 ? g.inn1.sc.r : g.sc.r); 
-            t1Obj.of += (g.inn1 ? g.inn1.sc.b/6 : g.sc.b/6);
+            t1Obj.of += (g.inn1 ? g.inn1.sc.b / 6 : g.sc.b / 6); 
             t1Obj.rc += g.sc.r; 
-            t1Obj.oc += g.sc.b/6;
+            t1Obj.oc += g.sc.b / 6; 
         }
-
-        if(t2Obj) {
-            t2Obj.p++;
-            t2Obj.rf += g.sc.r;
-            t2Obj.of += g.sc.b/6;
-            t2Obj.rc += (g.inn1 ? g.inn1.sc.r : 0);
-            t2Obj.oc += (g.inn1 ? g.inn1.sc.b/6 : 0);
+        if(t2Obj) { 
+            t2Obj.p++; 
+            t2Obj.rf += g.sc.r; 
+            t2Obj.of += g.sc.b / 6; 
+            t2Obj.rc += (g.inn1 ? g.inn1.sc.r : 0); 
+            t2Obj.oc += (g.inn1 ? g.inn1.sc.b / 6 : 0); 
         }
-
-        if(g.sc.r >= g.target) { if(t2Obj) { t2Obj.w++; t2Obj.pts+=2; } if(t1Obj) t1Obj.l++; } else { if(t1Obj) { t1Obj.w++; t1Obj.pts+=2; } if(t2Obj) t2Obj.l++; }
+        
+        if(g.sc.r >= g.target) { 
+            if(t2Obj) { 
+                t2Obj.w++; 
+                t2Obj.pts += 2; 
+            } 
+            if(t1Obj) t1Obj.l++; 
+        } else { 
+            if(t1Obj) { 
+                t1Obj.w++; 
+                t1Obj.pts += 2; 
+            } 
+            if(t2Obj) t2Obj.l++; 
+        }
         
         localStorage.setItem('activeTr', JSON.stringify(tr));
-        resumeTourn();
-    } else {
-        quitGame();
     }
+    
+    updateUI();
+    
+    showOverlay("MATCH OVER", res, "🏆", () => { 
+        if(mode === 'tourn') resumeTourn(); 
+        else quitGame(); 
+    });
 }
 
 function quitGame() {
     document.getElementById('view-game').classList.remove('active');
-    if(mode==='tourn') document.getElementById('view-tourn').classList.add('active');
-    else document.getElementById('view-home').classList.add('active');
+    if(mode === 'tourn') {
+        document.getElementById('view-tourn').classList.add('active');
+    } else {
+        document.getElementById('view-home').classList.add('active');
+    }
 }
 
-/* === UI UTILS === */
 function updateUI() {
     document.getElementById('ui-teams').innerText = g.meta.t1 + " vs " + g.meta.t2;
     document.getElementById('ui-r').innerText = g.sc.r;
     document.getElementById('ui-w').innerText = g.sc.w;
-    document.getElementById('ui-ov').innerText = Math.floor(g.sc.b/6) + "." + (g.sc.b%6);
-    document.getElementById('ui-crr').innerText = g.sc.b>0 ? (g.sc.r/(g.sc.b/6)).toFixed(1) : "0.0";
-    if(g.inn===2) { document.getElementById('ui-target').classList.remove('hidden'); document.getElementById('ui-target').innerText = "Target: "+g.target; }
+    document.getElementById('ui-ov').innerText = Math.floor(g.sc.b / 6) + "." + (g.sc.b % 6);
+    document.getElementById('ui-crr').innerText = g.sc.b > 0 ? (g.sc.r / (g.sc.b / 6)).toFixed(1) : "0.0";
     
-    let bh=""; 
-    const rb=(i,s)=>{let b=g.bats[i]; bh+=`<div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:5px; color:${s?'var(--accent)':'#ccc'}"><span>${b.n}${s?'*':''}</span><span>${b.r}(${b.b})</span></div>`;};
-    if(g.s!==-1) rb(g.s,true); 
-    if(g.ns!==-1) rb(g.ns,false); // LMS: Hide Non-Striker if -1
+    if(g.inn === 2) { 
+        document.getElementById('ui-target').classList.remove('hidden'); 
+        document.getElementById('ui-target').innerText = "Target: " + g.target; 
+    }
     
-    document.getElementById('ui-bats').innerHTML=bh;
+    let bh = ""; 
+    const rb = (i, s) => {
+        let b = g.bats[i]; 
+        bh += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:5px; color:${s ? 'var(--accent)' : '#ccc'}"><span>${b.n}${s ? '*' : ''}</span><span>${b.r}(${b.b})</span></div>`;
+    };
     
-    let bw=g.bowl[g.cb];
-    document.getElementById('ui-bowl').innerHTML=`<div style="display:flex; justify-content:space-between; padding:5px;"><span>${bw.n}</span><span>${bw.w}-${bw.r}</span></div>`;
-    document.getElementById('ui-over').innerHTML=g.thisOv.map(x=>`<span style="background:#444;padding:5px;border-radius:50%;min-width:20px;text-align:center;">${x}</span>`).join('');
+    if(g.s !== -1) rb(g.s, true); 
+    if(g.ns !== -1) rb(g.ns, false); 
+    
+    document.getElementById('ui-bats').innerHTML = bh;
+    
+    let bw = g.bowl[g.cb];
+    document.getElementById('ui-bowl').innerHTML = `<div style="display:flex; justify-content:space-between; padding:5px;"><span>${bw.n}</span><span>${bw.w}-${bw.r}</span></div>`;
+    document.getElementById('ui-over').innerHTML = g.thisOv.map(x => `<span style="background:#444;padding:5px;border-radius:50%;min-width:20px;text-align:center;">${x}</span>`).join('');
     
     let isLive = (g.status === STATUS.LIVE);
     document.getElementById('controls').style.opacity = isLive ? "1" : "0.5";
     document.getElementById('controls').style.pointerEvents = isLive ? "auto" : "none";
     
-    // 4. Force Analysis Refresh
     if(!document.getElementById('gm-analysis').classList.contains('hidden')) renderAnalysis();
+    // 🔴 PUSH LIVE DATA TO FIREBASE
+    if (window.pushLive) {
+    pushLive(g);
+  }
 }
+
 
 function renderAnalysis() {
     let remBalls = (g.meta.ov * 6) - g.sc.b;
     document.getElementById('an-rem').innerText = Math.max(0, remBalls);
+    
     let wLeft = (g.meta.lms ? g.meta.pl : g.meta.pl - 1) - g.sc.w;
     document.getElementById('an-wkt').innerText = Math.max(0, wLeft);
+    
     let proj = g.sc.b > 0 ? Math.floor((g.sc.r / g.sc.b) * (g.meta.ov * 6)) : 0;
     
     if (g.inn === 1) {
         document.getElementById('an-proj').innerText = proj;
         document.getElementById('an-rrr').innerText = "-";
-        let crr = g.sc.b>0 ? (g.sc.r/g.sc.b*6) : 0;
-        let p = 50 + (crr - 6)*5 - (g.sc.w*5);
+        
+        let crr = g.sc.b > 0 ? (g.sc.r / g.sc.b * 6) : 0;
+        let p = 50 + (crr - 6) * 5 - (g.sc.w * 5);
         document.getElementById('prob-bar').style.width = Math.max(0, Math.min(100, p)) + "%";
+        document.getElementById('p-t1').innerText = Math.round(Math.max(0, Math.min(100, p))) + "%";
+        document.getElementById('p-t2').innerText = Math.round(100 - Math.max(0, Math.min(100, p))) + "%";
     } else {
         document.getElementById('an-proj').innerText = "-";
+        
         let remRuns = g.target - g.sc.r;
-        let rrr = remBalls > 0 ? (remRuns / remBalls * 6).toFixed(2) : "Inf";
+        let rrr = remBalls > 0 ? (remRuns / remBalls * 6).toFixed(2) : "0.00";
         document.getElementById('an-rrr').innerText = rrr;
+        
         let p = 50;
-        if(remBalls <= 0) p = (remRuns <= 0) ? 100 : 0;
-        else {
-            // 5. Improved Win Prob
-            p = 50 + (wLeft * 8) - (rrr * 12);
+        if(remBalls <= 0) {
+            p = (remRuns <= 0) ? 100 : 0;
+        } else {
+            p = 50 + (wLeft * 8) - (remRuns / remBalls * 6 * 10);
         }
+        
         document.getElementById('prob-bar').style.width = Math.max(0, Math.min(100, p)) + "%";
+        document.getElementById('p-t1').innerText = Math.round(Math.max(0, Math.min(100, p))) + "%";
+        document.getElementById('p-t2').innerText = Math.round(100 - Math.max(0, Math.min(100, p))) + "%";
     }
 
-    let ctx=document.getElementById('worm').getContext('2d');
+    let ctx = document.getElementById('worm').getContext('2d');
     if(window.wc) window.wc.destroy();
-    if(!g.worm[0]) g.worm[0] = []; if(!g.worm[1]) g.worm[1] = [];
     
-    // 3. Worm X-Axis Fix
+    if(!g.worm[0]) g.worm[0] = []; 
+    if(!g.worm[1]) g.worm[1] = [];
+    
     let labels = Array.from({length: g.meta.ov + 1}, (_, i) => i);
-    window.wc=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:'Inn1',data:g.worm[0],borderColor:'#3b82f6'},{label:'Inn2',data:g.worm[1],borderColor:'#f59e0b'}]},options:{maintainAspectRatio:false}});
+    
+    window.wc = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Inn1',
+                    data: g.worm[0],
+                    borderColor: '#3b82f6',
+                    fill: false
+                },
+                {
+                    label: 'Inn2',
+                    data: g.worm[1],
+                    borderColor: '#f59e0b',
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Overs'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Runs'
+                    }
+                }
+            }
+        }
+    });
 }
 
 function renderCard() {
@@ -639,24 +838,106 @@ function renderCard() {
         inn.bats.forEach(b => t += `<tr><td>${b.n}</td><td>${b.r}(${b.b})</td></tr>`);
         return t + "</table>";
     };
-    if (g.inn === 1) h += tbl(g, g.meta.t1); else { h += tbl(g.inn1, g.inn1.t); h += tbl(g, g.meta.t1); }
+    
+    if (g.inn === 1) {
+        h += tbl(g, g.meta.t1);
+    } else { 
+        h += tbl(g.inn1, g.inn1.t); 
+        h += tbl(g, g.meta.t1); 
+    }
+    
     document.getElementById('full-card').innerHTML = h;
 }
 
-function save(){ let s=JSON.parse(JSON.stringify(g)); delete s.hist; g.hist.push(JSON.stringify(s)); }
-// 5. Undo LMS Safety
-function undo(){ 
+function save() { 
+    let s = JSON.parse(JSON.stringify(g)); 
+    delete s.hist; 
+    g.hist.push(JSON.stringify(s)); 
+}
+
+function undo() { 
     if(g.status !== STATUS.LIVE) return;
-    if(g.hist.length){ 
-        let h=g.hist; g=JSON.parse(h.pop()); g.hist=h; 
+    
+    if(g.hist.length) { 
+        let h = g.hist; 
+        g = JSON.parse(h.pop()); 
+        g.hist = h; 
         updateUI(); 
     } 
 }
-function mod(id){ if(g.status === STATUS.LIVE) document.getElementById('m-'+id).style.display='flex'; }
-function closeMod(id){ document.getElementById(id).style.display='none'; }
-function renderHist(){ document.getElementById('hist-list').innerHTML = (JSON.parse(localStorage.getItem('hist')||'[]')).map(x=>`<div class="card"><b>${x.res}</b><br><small>${x.date} | ${x.meta.type}</small></div>`).join(''); }
-function clearHist(){ localStorage.removeItem('hist'); renderHist(); }
-function wipeHist(){ localStorage.removeItem('hist'); renderHist(); }
+
+function mod(type) {
+    if (g.status !== STATUS.LIVE && type !== 'act') return;
+    document.getElementById('m-' + type).style.display = 'flex';
+}
+
+
+
+function closeMod(id) { 
+    document.getElementById(id).style.display = 'none'; 
+}
+
+function renderHist() { 
+    document.getElementById('hist-list').innerHTML = (JSON.parse(localStorage.getItem('hist') || '[]')).map(x => `<div class="card"><b>${x.res}</b><br><small>${x.date} | ${x.meta.type}</small></div>`).join(''); 
+}
+
+function wipeHist() { 
+    localStorage.removeItem('hist'); 
+    renderHist(); 
+}
+
+
 </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyCLJMN9v4XCM0Bfokue1sH7Mf4T0wVPKH8",
+  authDomain: "aachman-studios.firebaseapp.com",
+  databaseURL: "https://aachman-studios-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "aachman-studios",
+  storageBucket: "aachman-studios.appspot.com",
+  messagingSenderId: "917025025193",
+  appId: "1:917025025193:web:c63c200922215e4b6e0db8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ONE match for now
+window.MATCH_ID = "match_1";
+
+window.pushLive = function(g) {
+  if (!g || !g.sc) return;
+
+  set(ref(db, "matches/" + MATCH_ID), {
+    status: g.status,
+    teams: {
+      a: g.meta.t1,
+      b: g.meta.t2
+    },
+    score: {
+      runs: g.sc.r,
+      wickets: g.sc.w,
+      balls: g.sc.b
+    },
+    thisOv: g.thisOv,
+    target: g.target || null,
+    meta: {
+      ground: g.meta.ground,
+      city: g.meta.city,
+      type: g.meta.type
+    }
+  });
+};
+</script>
+<script>
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      document.getElementById("splash").style.display = "none";
+    }, 1500);
+  });
+</script>
+
 </body>
 </html>

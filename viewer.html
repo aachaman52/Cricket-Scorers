@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live Cricket Viewer</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --live: #22c55e;
+            --break: #f59e0b;
+            --finished: #ef4444;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; overflow-x: hidden; }
+        .container { max-width: 600px; margin: 0 auto; min-height: 100vh; position: relative; z-index: 10; }
+        
+        /* SPLASH SCREEN */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
+            animation: fadeOut 0.5s ease-out 2s forwards; /* 2s delay then fade out */
+        }
+        #splash img { width: 120px; height: 120px; margin-bottom: 20px; animation: bounce 1s infinite; }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* HEADER */
+        .app-header { background: var(--card-bg); padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; color: white; flex: 1; }
+        .live-badge { background: var(--live); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* LIST VIEW */
+        #match-list { padding: 10px; }
+        .match-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; cursor: pointer; transition: transform 0.2s; }
+        .match-card:active { transform: scale(0.98); }
+        .mc-header { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mc-teams { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+        .mc-score { font-size: 1.4rem; font-weight: 800; color: var(--text-main); }
+        .mc-status { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-top: 10px; }
+        
+        /* DETAIL VIEW */
+        #match-detail { display: none; padding: 10px; }
+        .back-btn { background: none; border: none; color: var(--accent); font-weight: bold; cursor: pointer; font-size: 1.2rem; padding: 0; margin-right: 15px; display: flex; align-items: center;}
+        
+        .score-hero { background: linear-gradient(135deg, #1e40af, #1e3a8a); padding: 25px; border-radius: 16px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .hero-tourn { font-size: 0.8rem; color: #bfdbfe; margin-bottom: 5px; text-transform: uppercase; }
+        .hero-teams { font-size: 1.2rem; font-weight: 600; color: white; margin-bottom: 10px; }
+        .hero-score { font-size: 3.5rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+        .hero-overs { font-size: 1.1rem; color: #bfdbfe; }
+        .hero-status { margin-top: 15px; font-size: 0.9rem; font-weight: bold; color: var(--break); background: rgba(0,0,0,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px; }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: var(--card-bg); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #334155; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--accent); margin-top: 5px; }
+
+        .ball-row { display: flex; gap: 8px; justify-content: center; margin-top: 5px; }
+        .ball { width: 32px; height: 32px; background: #334155; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; border: 1px solid #475569; }
+        .ball.wkt { background: var(--finished); border-color: var(--finished); }
+        .ball.four { background: var(--accent); border-color: var(--accent); }
+        .ball.six { background: var(--live); color: black; border-color: var(--live); }
+
+        /* UTILS */
+        .hidden { display: none !important; }
+        .st-live { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .st-break { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .st-finished { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        
+        .loading { text-align: center; padding: 50px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div id="splash">
+        <img src="logo.png" alt="App Icon">
+        <div style="color: var(--text-muted); font-size: 0.9rem;">Loading Cricket Viewer...</div>
+    </div>
+
+    <div class="container">
+        <header class="app-header">
+            <button id="btn-back" class="back-btn hidden" onclick="goHome()">&#8592;</button>
+            <div class="logo">CricViewer</div>
+            <div class="live-badge">LIVE</div>
+        </header>
+
+        <div id="match-list">
+            <div class="loading">Connecting to Live Feed...</div>
+        </div>
+
+        <div id="match-detail"></div>
+    </div>
+
+    <script type="module">
+        // FIXED: Using valid CDN imports for browser (v11.1.0)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyCLJMN9v4XCM0Bfokue1sH7Mf4T0wVPKH8",
+          authDomain: "aachman-studios.firebaseapp.com",
+          databaseURL: "https://aachman-studios-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "aachman-studios",
+          storageBucket: "aachman-studios.appspot.com",
+          messagingSenderId: "917025025193",
+          appId: "1:917025025193:web:c63c200922215e4b6e0db8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app); // FIXED: DB initialization was missing
+
+        // State
+        let allMatches = {};
+        let currentView = 'list';
+        let currentMatchId = null;
+
+        // Listen for Realtime Updates
+        // FIXED: db was undefined in previous code
+        const matchesRef = ref(db, 'matches');
+        
+        onValue(matchesRef, (snapshot) => {
+            const data = snapshot.val();
+            allMatches = data || {};
+            render(); // Auto-refresh UI whenever DB changes
+        }, (error) => {
+            console.error("Firebase Read Error:", error);
+            document.querySelector('.loading').innerText = "Error loading live data.";
+        });
+
+        // ---------------------------------------------------------
+        // RENDER LOGIC
+        // ---------------------------------------------------------
+        function render() {
+            if (currentView === 'list') {
+                renderList();
+            } else if (currentView === 'detail' && currentMatchId) {
+                renderDetail(currentMatchId);
+            }
+        }
+
+        // 1. Render Home List
+        function renderList() {
+            const listEl = document.getElementById('match-list');
+            document.getElementById('match-detail').style.display = 'none';
+            document.getElementById('btn-back').classList.add('hidden');
+            listEl.style.display = 'block';
+
+            const ids = Object.keys(allMatches).reverse(); // Newest first
+            
+            if (ids.length === 0) {
+                listEl.innerHTML = '<div class="loading">No matches live right now.</div>';
+                return;
+            }
+
+            let html = '';
+            ids.forEach(id => {
+                const m = allMatches[id];
+                if (!m) return;
+                
+                const s = m.status || 'LIVE';
+                const styleClass = getStatusClass(s);
+                const scoreTxt = m.score ? `${m.score.runs}/${m.score.wickets}` : "0/0";
+                const overs = m.score ? ballToOver(m.score.balls) : "0.0";
+
+                html += `
+                <div class="match-card" onclick="window.viewMatch('${id}')">
+                    <div class="mc-header">
+                        <span>${safe(m.tournament, 'Tournament')}</span>
+                        <span>${safe(m.meta?.type, 'Match')}</span>
+                    </div>
+                    <div class="mc-teams">${safe(m.teams?.a, 'Home')} vs ${safe(m.teams?.b, 'Away')}</div>
+                    <div class="mc-score">${scoreTxt} <span style="font-size:0.9rem; font-weight:400; color:#94a3b8">(${overs})</span></div>
+                    <div class="mc-status ${styleClass}">${s}</div>
+                </div>`;
+            });
+            listEl.innerHTML = html;
+        }
+
+        // 2. Render Match Detail
+        function renderDetail(id) {
+            const m = allMatches[id];
+            if (!m) return goHome(); // Handle deletion
+
+            const container = document.getElementById('match-detail');
+            document.getElementById('match-list').style.display = 'none';
+            document.getElementById('btn-back').classList.remove('hidden');
+            container.style.display = 'block';
+
+            const score = m.score || { runs: 0, wickets: 0, balls: 0 };
+            const overs = ballToOver(score.balls);
+            const crr = score.balls > 0 ? (score.runs / (score.balls/6)).toFixed(2) : "0.00";
+            const status = m.status || "LIVE";
+            
+            // Last 6 balls logic
+            let last6Html = '<span style="color:#666; font-size:0.8rem">No data</span>';
+            if (m.thisOv && Array.isArray(m.thisOv)) {
+                last6Html = m.thisOv.map(b => {
+                    let c = 'ball';
+                    if (b === 'W') c += ' wkt';
+                    else if (b == 4) c += ' four';
+                    else if (b == 6) c += ' six';
+                    return `<div class="${c}">${b}</div>`;
+                }).join('');
+            }
+
+            // Target logic
+            let targetHtml = '';
+            if (m.target) {
+                const need = m.target - score.runs;
+                targetHtml = `<div class="stat-box">
+                    <div class="stat-label">Target: ${m.target}</div>
+                    <div class="stat-val" style="color:${need > 0 ? '#fbbf24' : '#22c55e'}">${need > 0 ? `Need ${need}` : 'WIN'}</div>
+                </div>`;
+            }
+
+            container.innerHTML = `
+                <div class="score-hero">
+                    <div class="hero-tourn">${safe(m.tournament, 'Tournament')}</div>
+                    <div class="hero-teams">${safe(m.teams?.a, 'Home')} vs ${safe(m.teams?.b, 'Away')}</div>
+                    <div class="hero-score">${score.runs}/${score.wickets}</div>
+                    <div class="hero-overs">(${overs} Overs)</div>
+                    <div class="hero-status" style="color: ${status === 'LIVE' ? '#4ade80' : '#fff'}">${status}</div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">CRR</div>
+                        <div class="stat-val">${crr}</div>
+                    </div>
+                    ${targetHtml}
+                </div>
+
+                <div class="card">
+                    <div class="stat-label" style="margin-bottom:10px;">CURRENT OVER</div>
+                    <div class="ball-row">
+                        ${last6Html}
+                    </div>
+                </div>
+                
+                <div class="card" style="text-align:center; color:#94a3b8; font-size:0.8rem;">
+                    <p>🏟 ${safe(m.meta?.ground, 'Ground info not available')}</p>
+                    <p>📍 ${safe(m.meta?.city, '')}</p>
+                </div>
+            `;
+        }
+
+        // ---------------------------------------------------------
+        // UTILITIES & GLOBAL EXPORTS
+        // ---------------------------------------------------------
+        
+        window.viewMatch = (id) => {
+            currentMatchId = id;
+            currentView = 'detail';
+            render();
+        };
+
+        window.goHome = () => {
+            currentMatchId = null;
+            currentView = 'list';
+            render();
+        };
+
+        function ballToOver(balls) {
+            return Math.floor(balls / 6) + "." + (balls % 6);
+        }
+
+        function getStatusClass(status) {
+            if (status === 'LIVE') return 'st-live';
+            if (status === 'BREAK') return 'st-break';
+            return 'st-finished';
+        }
+
+        function safe(val, def) {
+            return val !== undefined && val !== null ? val : def;
+        }
+
+    </script>
+</body>
+</html>
