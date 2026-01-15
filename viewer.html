@@ -25,7 +25,7 @@
             z-index: 9999;
             display: flex; justify-content: center; align-items: center;
             flex-direction: column;
-            animation: fadeOut 0.5s ease-out 2s forwards; /* 2s delay then fade out */
+            animation: fadeOut 0.5s ease-out 2s forwards;
         }
         #splash img { width: 120px; height: 120px; margin-bottom: 20px; animation: bounce 1s infinite; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
@@ -68,6 +68,21 @@
         .ball.four { background: var(--accent); border-color: var(--accent); }
         .ball.six { background: var(--live); color: black; border-color: var(--live); }
 
+        .card { background: var(--card-bg); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #334155; }
+        
+        /* TABS */
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #334155; }
+        .tab { padding: 10px 20px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.2s; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* SCORECARD */
+        .innings-card { background: var(--card-bg); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #334155; }
+        .innings-header { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; color: var(--accent); }
+        .innings-score { font-size: 1.8rem; font-weight: 800; margin-bottom: 5px; }
+
         /* UTILS */
         .hidden { display: none !important; }
         .st-live { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
@@ -80,7 +95,7 @@
 <body>
 
     <div id="splash">
-        <img src="logo.png" alt="App Icon">
+        <img src="logo.png" alt="App Icon" onerror="this.style.display='none'">
         <div style="color: var(--text-muted); font-size: 0.9rem;">Loading Cricket Viewer...</div>
     </div>
 
@@ -99,11 +114,9 @@
     </div>
 
     <script type="module">
-        // FIXED: Using valid CDN imports for browser (v11.1.0)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
           apiKey: "AIzaSyCLJMN9v4XCM0Bfokue1sH7Mf4T0wVPKH8",
           authDomain: "aachman-studios.firebaseapp.com",
@@ -114,31 +127,25 @@
           appId: "1:917025025193:web:c63c200922215e4b6e0db8"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app); // FIXED: DB initialization was missing
+        const db = getDatabase(app);
 
-        // State
         let allMatches = {};
         let currentView = 'list';
         let currentMatchId = null;
+        let currentTab = 'live';
 
-        // Listen for Realtime Updates
-        // FIXED: db was undefined in previous code
         const matchesRef = ref(db, 'matches');
         
         onValue(matchesRef, (snapshot) => {
             const data = snapshot.val();
             allMatches = data || {};
-            render(); // Auto-refresh UI whenever DB changes
+            render();
         }, (error) => {
             console.error("Firebase Read Error:", error);
             document.querySelector('.loading').innerText = "Error loading live data.";
         });
 
-        // ---------------------------------------------------------
-        // RENDER LOGIC
-        // ---------------------------------------------------------
         function render() {
             if (currentView === 'list') {
                 renderList();
@@ -147,17 +154,20 @@
             }
         }
 
-        // 1. Render Home List
         function renderList() {
             const listEl = document.getElementById('match-list');
             document.getElementById('match-detail').style.display = 'none';
             document.getElementById('btn-back').classList.add('hidden');
             listEl.style.display = 'block';
 
-            const ids = Object.keys(allMatches).reverse(); // Newest first
+            const ids = Object.keys(allMatches).sort((a, b) => {
+                const timeA = allMatches[a].updatedAt || 0;
+                const timeB = allMatches[b].updatedAt || 0;
+                return timeB - timeA;
+            });
             
             if (ids.length === 0) {
-                listEl.innerHTML = '<div class="loading">No matches live right now.</div>';
+                listEl.innerHTML = '<div class="loading">No matches available right now.</div>';
                 return;
             }
 
@@ -177,7 +187,7 @@
                         <span>${safe(m.tournament, 'Tournament')}</span>
                         <span>${safe(m.meta?.type, 'Match')}</span>
                     </div>
-                    <div class="mc-teams">${safe(m.teams?.a, 'Home')} vs ${safe(m.teams?.b, 'Away')}</div>
+                    <div class="mc-teams">${safe(m.teams?.a, 'Team A')} vs ${safe(m.teams?.b, 'Team B')}</div>
                     <div class="mc-score">${scoreTxt} <span style="font-size:0.9rem; font-weight:400; color:#94a3b8">(${overs})</span></div>
                     <div class="mc-status ${styleClass}">${s}</div>
                 </div>`;
@@ -185,10 +195,9 @@
             listEl.innerHTML = html;
         }
 
-        // 2. Render Match Detail
         function renderDetail(id) {
             const m = allMatches[id];
-            if (!m) return goHome(); // Handle deletion
+            if (!m) return goHome();
 
             const container = document.getElementById('match-detail');
             document.getElementById('match-list').style.display = 'none';
@@ -197,10 +206,18 @@
 
             const score = m.score || { runs: 0, wickets: 0, balls: 0 };
             const overs = ballToOver(score.balls);
-            const crr = score.balls > 0 ? (score.runs / (score.balls/6)).toFixed(2) : "0.00";
             const status = m.status || "LIVE";
             
-            // Last 6 balls logic
+            // Tabs
+            let tabsHtml = `
+                <div class="tabs">
+                    <div class="tab ${currentTab === 'live' ? 'active' : ''}" onclick="window.switchTab('live')">Live</div>
+                    <div class="tab ${currentTab === 'scorecard' ? 'active' : ''}" onclick="window.switchTab('scorecard')">Scorecard</div>
+                    <div class="tab ${currentTab === 'analysis' ? 'active' : ''}" onclick="window.switchTab('analysis')">Analysis</div>
+                </div>
+            `;
+
+            // LIVE TAB CONTENT
             let last6Html = '<span style="color:#666; font-size:0.8rem">No data</span>';
             if (m.thisOv && Array.isArray(m.thisOv)) {
                 last6Html = m.thisOv.map(b => {
@@ -212,23 +229,26 @@
                 }).join('');
             }
 
-            // Target logic
             let targetHtml = '';
             if (m.target) {
                 const need = m.target - score.runs;
                 targetHtml = `<div class="stat-box">
                     <div class="stat-label">Target: ${m.target}</div>
-                    <div class="stat-val" style="color:${need > 0 ? '#fbbf24' : '#22c55e'}">${need > 0 ? `Need ${need}` : 'WIN'}</div>
+                    <div class="stat-val" style="color:${need > 0 ? '#fbbf24' : '#22c55e'}">${need > 0 ? `Need ${need}` : 'WON'}</div>
                 </div>`;
             }
 
-            container.innerHTML = `
+            const crr = m.analysis?.crr || "0.00";
+            const rrr = m.analysis?.rrr || null;
+
+            let liveContent = `
                 <div class="score-hero">
                     <div class="hero-tourn">${safe(m.tournament, 'Tournament')}</div>
-                    <div class="hero-teams">${safe(m.teams?.a, 'Home')} vs ${safe(m.teams?.b, 'Away')}</div>
+                    <div class="hero-teams">${safe(m.teams?.a, 'Team A')} vs ${safe(m.teams?.b, 'Team B')}</div>
                     <div class="hero-score">${score.runs}/${score.wickets}</div>
                     <div class="hero-overs">(${overs} Overs)</div>
-                    <div class="hero-status" style="color: ${status === 'LIVE' ? '#4ade80' : '#fff'}">${status}</div>
+                    <div class="hero-status" style="color: ${status === 'LIVE' ? '#4ade80' : status === 'BREAK' ? '#fbbf24' : '#fff'}">${status}</div>
+                    ${m.innings === 2 ? `<div style="margin-top:10px; color:#bfdbfe;">Innings ${m.innings} • ${safe(m.currentBatting, '')} batting</div>` : ''}
                 </div>
 
                 <div class="stat-grid">
@@ -236,6 +256,10 @@
                         <div class="stat-label">CRR</div>
                         <div class="stat-val">${crr}</div>
                     </div>
+                    ${rrr !== null ? `<div class="stat-box">
+                        <div class="stat-label">RRR</div>
+                        <div class="stat-val" style="color:${parseFloat(rrr) > parseFloat(crr) ? '#ef4444' : '#22c55e'}">${rrr}</div>
+                    </div>` : ''}
                     ${targetHtml}
                 </div>
 
@@ -251,21 +275,81 @@
                     <p>📍 ${safe(m.meta?.city, '')}</p>
                 </div>
             `;
+
+            // SCORECARD TAB CONTENT
+            let scorecardContent = '';
+            if (m.innData && Array.isArray(m.innData) && m.innData.length > 0) {
+                scorecardContent = m.innData.map((inn, idx) => {
+                    const s = inn.score || { runs: 0, wickets: 0, balls: 0 };
+                    return `
+                        <div class="innings-card">
+                            <div class="innings-header">Innings ${idx + 1} - ${safe(inn.team, 'Team')}</div>
+                            <div class="innings-score">${s.runs}/${s.wickets}</div>
+                            <div style="color: var(--text-muted); font-size: 0.9rem;">${ballToOver(s.balls)} Overs</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                scorecardContent = '<div class="card" style="text-align:center; color: var(--text-muted);">Scorecard will be available after innings completion</div>';
+            }
+
+            // ANALYSIS TAB CONTENT
+            const remBalls = m.analysis?.remBalls;
+            const remWkts = m.analysis?.remWkts;
+            
+            let analysisContent = `
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Current Run Rate</div>
+                        <div class="stat-val">${crr}</div>
+                    </div>
+                    ${rrr !== null ? `<div class="stat-box">
+                        <div class="stat-label">Required Run Rate</div>
+                        <div class="stat-val">${rrr}</div>
+                    </div>` : ''}
+                    ${remBalls !== null ? `<div class="stat-box">
+                        <div class="stat-label">Balls Remaining</div>
+                        <div class="stat-val">${remBalls}</div>
+                    </div>` : ''}
+                    <div class="stat-box">
+                        <div class="stat-label">Wickets Left</div>
+                        <div class="stat-val">${remWkts !== undefined ? remWkts : 10}</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div style="color: var(--text-muted); text-align: center;">
+                        ${m.innings === 2 && m.target ? 
+                            `<p style="font-size:1.1rem; margin-bottom:10px;">Target: <strong style="color:var(--text-main)">${m.target}</strong></p>
+                             <p>Runs needed: <strong style="color:var(--accent)">${Math.max(0, m.target - score.runs)}</strong></p>` 
+                            : '<p>Match analysis will update in real-time</p>'}
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = `
+                ${tabsHtml}
+                <div class="tab-content ${currentTab === 'live' ? 'active' : ''}" id="tab-live">${liveContent}</div>
+                <div class="tab-content ${currentTab === 'scorecard' ? 'active' : ''}" id="tab-scorecard">${scorecardContent}</div>
+                <div class="tab-content ${currentTab === 'analysis' ? 'active' : ''}" id="tab-analysis">${analysisContent}</div>
+            `;
         }
 
-        // ---------------------------------------------------------
-        // UTILITIES & GLOBAL EXPORTS
-        // ---------------------------------------------------------
-        
         window.viewMatch = (id) => {
             currentMatchId = id;
             currentView = 'detail';
+            currentTab = 'live';
             render();
         };
 
         window.goHome = () => {
             currentMatchId = null;
             currentView = 'list';
+            currentTab = 'live';
+            render();
+        };
+
+        window.switchTab = (tab) => {
+            currentTab = tab;
             render();
         };
 
