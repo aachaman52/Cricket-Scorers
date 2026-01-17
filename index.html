@@ -37,20 +37,9 @@
     </style>
 </head>
 <body onload="init()">
-    <div id="splash">
-        <div class="splash-box">
-            <img src="logo.png" width="100" height="100" alt="Logo">
-            <h1>Pro Scorer</h1>
-            <p>Loading match engine...</p>
-        </div>
-    </div>
-
-    <div id="tv-overlay"><div class="tv-card">
-        <div id="tv-icon" style="font-size:3rem; margin-bottom:10px;">🏆</div>
-        <div id="tv-title" style="color:var(--gold); font-size:1.5rem; font-weight:bold; margin-bottom:10px;">RESULT</div>
-        <div id="tv-msg" style="color:white; font-size:1.1rem; margin-bottom:20px;"></div>
-        <button onclick="closeOverlay()" style="width:100%; background:var(--primary);">CONTINUE</button>
-    </div></div>
+    <div id="splash"><div class="splash-box"><h1>Pro Scorer</h1><p>Loading...</p></div></div>
+    
+    <div id="tv-overlay"><div class="tv-card"><div id="tv-icon" style="font-size:3rem;">🏆</div><div id="tv-title" style="color:var(--gold); font-size:1.5rem; font-weight:bold;">RESULT</div><div id="tv-msg"></div><button onclick="closeOverlay()" style="width:100%; background:var(--primary); margin-top:10px;">CONTINUE</button></div></div>
 
     <div id="view-home" class="container section active">
         <div class="nav">
@@ -58,7 +47,6 @@
             <div class="nav-item" onclick="tab('home','tourn', this)">TOURNAMENT</div>
             <div class="nav-item" onclick="tab('home','hist', this)">HISTORY</div>
         </div>
-
         <div id="home-quick" class="sub-sec">
             <div class="card">
                 <h2 style="color:var(--primary); margin-top:0; text-align:center;">MATCH SETUP</h2>
@@ -68,7 +56,6 @@
                     <select id="q-type"><option>T20</option><option>ODI</option><option>Test</option></select>
                 </div>
                 <hr style="border-color:#334155; margin:15px 0;">
-                <label style="color:var(--gold); font-size:0.8rem;">TEAMS</label>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <input id="q-t1" placeholder="Team A (Bat)">
                     <input id="q-t2" placeholder="Team B (Bowl)">
@@ -78,13 +65,10 @@
                 <input id="q-s" placeholder="Striker">
                 <input id="q-ns" placeholder="Non-Striker">
                 <input id="q-b" placeholder="Bowler">
-                <label style="display:flex; align-items:center; margin-top:10px; font-size:0.9rem;">
-                    <input type="checkbox" id="q-lms" style="width:auto; margin-right:8px;"> Last Man Standing
-                </label>
+                <label style="display:flex; align-items:center; margin-top:10px; font-size:0.9rem;"><input type="checkbox" id="q-lms" style="width:auto; margin-right:8px;"> Last Man Standing</label>
                 <button onclick="startQuick()" style="width:100%; background:var(--accent); margin-top:15px;">START MATCH</button>
             </div>
         </div>
-        
         <div id="home-tourn" class="sub-sec hidden"><div class="card"><p style="text-align:center">Tournament Mode Active</p></div></div>
         <div id="home-hist" class="sub-sec hidden"><div id="hist-list"></div><button onclick="wipeHist()" style="width:100%; background:var(--danger); margin-top:20px;">CLEAR DATA</button></div>
     </div>
@@ -96,41 +80,28 @@
             <div class="nav-item" onclick="gmTab('analysis', this)">ANALYSIS</div>
             <div class="nav-item" onclick="openActions()" style="color:var(--gold)">ACTIONS</div>
         </div>
-
         <div id="gm-live" class="gm-sub">
             <div class="score-box">
                 <div id="ui-teams" style="font-weight:bold; letter-spacing:1px; color:#fff;">-</div>
                 <div class="big-score"><span id="ui-r">0</span>/<span id="ui-w">0</span></div>
-                <div class="stat-row">
-                    <span>Ov: <span id="ui-ov">0.0</span></span>
-                    <span>CRR: <span id="ui-crr">0.0</span></span>
-                </div>
+                <div class="stat-row"><span>Ov: <span id="ui-ov">0.0</span></span><span>CRR: <span id="ui-crr">0.0</span></span></div>
                 <div id="ui-target" class="hidden" style="margin-top:5px; color:var(--gold); font-weight:bold;">Target: 0</div>
             </div>
             <div class="card"><div id="ui-bats"></div></div>
             <div class="card"><div id="ui-bowl"></div><div id="ui-over" style="display:flex;gap:5px;margin-top:5px;overflow-x:auto;"></div></div>
         </div>
-
         <div id="gm-card" class="gm-sub hidden"><div class="card"><div id="full-card"></div></div></div>
-        
         <div id="gm-analysis" class="gm-sub hidden">
             <div class="card">
-                <h4 style="margin:0 0 15px 0; color:var(--gold); text-align:center;">MATCH ANALYSIS</h4>
                 <div class="stat-grid">
                     <div class="stat-item"><div class="stat-val" id="an-rrr">-</div><div class="stat-lbl">Req. Rate</div></div>
                     <div class="stat-item"><div class="stat-val" id="an-proj">0</div><div class="stat-lbl">Proj. Score</div></div>
                     <div class="stat-item"><div class="stat-val" id="an-rem">0</div><div class="stat-lbl">Balls Rem.</div></div>
                     <div class="stat-item"><div class="stat-val" id="an-wkt">10</div><div class="stat-lbl">Wickets Hand</div></div>
                 </div>
-                <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">WIN PROBABILITY</div>
-                <div class="win-prob-bar"><div id="prob-bar" style="width:50%;" class="win-prob-fill"></div></div>
-                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:bold;">
-                    <span id="p-t1">50%</span><span id="p-t2">50%</span>
-                </div>
+                <div style="height:250px;"><canvas id="worm"></canvas></div>
             </div>
-            <div class="card" style="height:250px;"><canvas id="worm"></canvas></div>
         </div>
-
         <div class="controls" id="controls">
             <button style="background:#334155;" onclick="run(0)">0</button>
             <button style="background:#334155;" onclick="run(1)">1</button>
@@ -145,39 +116,23 @@
         </div>
     </div>
 
-    <div id="m-wkt" class="modal">
+    <div id="m-inn-setup" class="modal">
         <div class="modal-box">
-            <h3>WICKET</h3>
-            <select id="w-type" onchange="updateWktModal()">
-                <option value="Bowled">Bowled</option>
-                <option value="Caught">Caught</option>
-                <option value="Run Out">Run Out</option>
-                <option value="LBW">LBW</option>
-                <option value="Stumped">Stumped</option>
-            </select>
-            <div id="div-who" class="hidden">
-                <label style="font-size:0.8rem; color:#999;">Who is out?</label>
-                <select id="w-who"><option value="s">Striker</option><option value="ns">Non-Striker</option></select>
-            </div>
-            <div id="div-fielder" class="hidden">
-                <input id="w-fielder" placeholder="Fielder / Catcher Name">
-            </div>
-            <input id="w-new" placeholder="Next Batsman Name" style="margin-top:10px;">
-            <button onclick="confWkt()" style="width:100%; background:var(--danger); margin-top:10px;">CONFIRM</button>
-            <button onclick="closeMod('m-wkt')" style="width:100%; background:transparent;">CANCEL</button>
+            <h3 style="color:var(--gold); text-align:center;">SECOND INNINGS SETUP</h3>
+            <label style="font-size:0.8rem; color:#ccc;">Batting Team (Chasing)</label>
+            <input id="i2-s" placeholder="Striker Name">
+            <input id="i2-ns" placeholder="Non-Striker Name">
+            <label style="font-size:0.8rem; color:#ccc;">Bowling Team (Defending)</label>
+            <input id="i2-b" placeholder="Opening Bowler">
+            <button onclick="startInn2()" style="width:100%; background:var(--accent); margin-top:10px;">START CHASE</button>
         </div>
     </div>
 
+    <div id="m-wkt" class="modal"><div class="modal-box"><h3>WICKET</h3><select id="w-type" onchange="updateWktModal()"><option value="Bowled">Bowled</option><option value="Caught">Caught</option><option value="Run Out">Run Out</option><option value="LBW">LBW</option><option value="Stumped">Stumped</option></select><div id="div-who" class="hidden"><select id="w-who"><option value="s">Striker</option><option value="ns">Non-Striker</option></select></div><div id="div-fielder" class="hidden"><input id="w-fielder" placeholder="Fielder Name"></div><input id="w-new" placeholder="Next Batsman"><button onclick="confWkt()" style="width:100%; background:var(--danger); margin-top:10px;">CONFIRM</button><button onclick="closeMod('m-wkt')" style="width:100%; background:transparent;">CANCEL</button></div></div>
     <div id="m-wd" class="modal"><div class="modal-box"><h3>Wide</h3><button onclick="ex('WD',0)" style="width:100%; background:var(--primary);">Confirm (+1)</button><button onclick="closeMod('m-wd')" style="width:100%; background:transparent;">Cancel</button></div></div>
     <div id="m-nb" class="modal"><div class="modal-box"><h3>No Ball</h3><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px;"><button onclick="ex('NB',0)" style="background:#334155;">0</button><button onclick="ex('NB',1)" style="background:#334155;">1</button><button onclick="ex('NB',4)" style="background:var(--primary);">4</button><button onclick="ex('NB',6)" style="background:var(--gold); color:black;">6</button></div><button onclick="closeMod('m-nb')" style="width:100%; background:transparent;">Cancel</button></div></div>
     <div id="m-bowl" class="modal"><div class="modal-box"><h3>End Over</h3><input id="b-next" placeholder="Next Bowler"><button onclick="confBowl()" style="width:100%; background:var(--primary);">Start</button></div></div>
-    <div id="m-act" class="modal"><div class="modal-box">
-        <h3 style="color:var(--gold); text-align:center;">MATCH ACTIONS</h3>
-        <button onclick="manualEndInnings()" style="width:100%; background:#334155; margin-bottom:10px;">Declare / End Innings</button>
-        <button onclick="finish('Abandoned')" style="width:100%; background:#334155; margin-bottom:10px;">Abandon (No Result)</button>
-        <button onclick="quitGame()" style="width:100%; background:var(--danger); margin-top:10px;">Exit to Menu</button>
-        <button onclick="closeMod('m-act')" style="width:100%; background:transparent;">Cancel</button>
-    </div></div>
+    <div id="m-act" class="modal"><div class="modal-box"><h3>Actions</h3><button onclick="manualEndInnings()" style="width:100%; background:#334155; margin-bottom:10px;">End Innings</button><button onclick="finish('Abandoned')" style="width:100%; background:#334155; margin-bottom:10px;">Abandon</button><button onclick="quitGame()" style="width:100%; background:var(--danger);">Exit</button><button onclick="closeMod('m-act')" style="width:100%; background:transparent;">Cancel</button></div></div>
 
 <script>
 const STATUS = { LIVE: 'LIVE', BREAK: 'BREAK', FINISHED: 'FINISHED' };
@@ -216,10 +171,8 @@ function ex(t,r) { if(g.status !== STATUS.LIVE) return; closeMod('m-wd'); closeM
 function wkt() { if(g.status === STATUS.LIVE) { document.getElementById('w-type').value = "Bowled"; updateWktModal(); mod('wkt'); } }
 function updateWktModal() {
     const type = document.getElementById('w-type').value;
-    const divWho = document.getElementById('div-who');
-    const divFielder = document.getElementById('div-fielder');
-    divWho.classList.toggle('hidden', type !== 'Run Out');
-    divFielder.classList.toggle('hidden', !['Caught', 'Run Out', 'Stumped'].includes(type));
+    document.getElementById('div-who').classList.toggle('hidden', type !== 'Run Out');
+    document.getElementById('div-fielder').classList.toggle('hidden', !['Caught', 'Run Out', 'Stumped'].includes(type));
 }
 function confWkt() {
     closeMod('m-wkt'); save();
@@ -227,8 +180,7 @@ function confWkt() {
     let whoVal = document.getElementById('w-who').value;
     let fielder = document.getElementById('w-fielder').value.trim() || "Fielder";
     let bowlerName = g.bowl[g.cb].n;
-    let v = g.s; 
-    if (type === 'Run Out' && whoVal === 'ns') v = g.ns;
+    let v = (type === 'Run Out' && whoVal === 'ns') ? g.ns : g.s;
 
     let howText = "";
     if (type === 'Bowled') howText = `b ${bowlerName}`;
@@ -259,7 +211,39 @@ function swap() { if (g.meta.lms && g.ns === -1) return; [g.s, g.ns] = [g.ns, g.
 function checkOv() { if(g.sc.b % 6 === 0 && g.sc.b > 0) { if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = []; g.worm[g.inn - 1].push(g.sc.r); swap(); if(Math.floor(g.sc.b / 6) >= g.meta.ov) { endInn(); } else { mod('bowl'); } } }
 function confBowl() { let n = document.getElementById('b-next').value; document.getElementById('b-next').value = ""; closeMod('m-bowl'); let ex = g.bowl.findIndex(b => b.n === n); if(ex === -1) { g.bowl.push({n:n, r:0, w:0, b:0}); g.cb = g.bowl.length - 1; } else { g.cb = ex; } g.thisOv = []; updateUI(); }
 function manualEndInnings() { closeMod('m-act'); endInn(); }
-function endInn() { if(g.status === STATUS.FINISHED) return; if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = []; g.worm[g.inn - 1].push(g.sc.r); if(g.inn === 1) { g.inn1 = { t: g.meta.t1, sc: {...g.sc}, bats: JSON.parse(JSON.stringify(g.bats)), bowl: JSON.parse(JSON.stringify(g.bowl)) }; g.target = g.sc.r + 1; g.inn = 2; g.sc = {r:0, w:0, b:0}; let t = g.meta.t1; g.meta.t1 = g.meta.t2; g.meta.t2 = t; g.bats = [{n:"P1", r:0, b:0, out:false}, {n:"P2", r:0, b:0, out:false}]; g.bowl = [{n:"B1", r:0, w:0, b:0}]; g.s = 0; g.ns = 1; g.cb = 0; g.thisOv = []; g.status = STATUS.BREAK; if (window.pushLive) pushLive(g); showOverlay("INNINGS BREAK", `Target: ${g.target}`, "🏏", () => { g.status = STATUS.LIVE; updateUI(); }); } else { finish("Overs/AllOut"); } }
+
+function endInn() {
+    if(g.status === STATUS.FINISHED) return;
+    if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = [];
+    g.worm[g.inn - 1].push(g.sc.r);
+
+    if(g.inn === 1) {
+        g.inn1 = { t: g.meta.t1, sc: {...g.sc}, bats: JSON.parse(JSON.stringify(g.bats)), bowl: JSON.parse(JSON.stringify(g.bowl)) };
+        g.target = g.sc.r + 1;
+        g.inn = 2;
+        g.sc = {r:0, w:0, b:0};
+        let t = g.meta.t1; g.meta.t1 = g.meta.t2; g.meta.t2 = t;
+        g.bats = []; g.bowl = []; g.s = 0; g.ns = 1; g.cb = 0; g.thisOv = [];
+        g.status = STATUS.BREAK;
+        if (window.pushLive) pushLive(g);
+        showOverlay("INNINGS BREAK", `Target: ${g.target}`, "🏏", () => { document.getElementById('m-inn-setup').style.display = 'flex'; });
+    } else {
+        finish("Overs/AllOut");
+    }
+}
+
+function startInn2() {
+    const sName = document.getElementById('i2-s').value || "Striker";
+    const nsName = document.getElementById('i2-ns').value || "Non-Striker";
+    const bName = document.getElementById('i2-b').value || "Bowler";
+    g.bats = [{n: sName, r:0, b:0, out:false}, {n: nsName, r:0, b:0, out:false}];
+    g.bowl = [{n: bName, r:0, w:0, b:0}];
+    g.s = 0; g.ns = 1; g.cb = 0;
+    g.status = STATUS.LIVE;
+    document.getElementById('m-inn-setup').style.display = 'none';
+    updateUI();
+}
+
 function closeOverlay() { document.getElementById('tv-overlay').style.display = 'none'; if(overlayCallback) overlayCallback(); overlayCallback = null; }
 function finish(reason) { if(g.status === STATUS.FINISHED) return; closeMod('m-act'); g.status = STATUS.FINISHED; if(!g.worm[g.inn - 1]) g.worm[g.inn - 1] = []; g.worm[g.inn - 1].push(g.sc.r); let res = (reason === "Abandoned") ? "Abandoned" : (g.sc.r >= g.target) ? g.meta.t1 + " Won" : g.meta.t2 + " Won"; updateUI(); showOverlay("MATCH OVER", res, "🏆", () => { quitGame(); }); }
 function quitGame() { document.getElementById('view-game').classList.remove('active'); document.getElementById('view-home').classList.add('active'); window.MATCH_ID = null; }
@@ -270,50 +254,23 @@ function renderAnalysis() {
     let wLeft = (g.meta.lms ? g.meta.pl : g.meta.pl - 1) - g.sc.w;
     document.getElementById('an-wkt').innerText = Math.max(0, wLeft);
     let proj = g.sc.b > 0 ? Math.floor((g.sc.r / g.sc.b) * (g.meta.ov * 6)) : 0;
-    
-    if (g.inn === 1) {
-        document.getElementById('an-proj').innerText = proj;
-        document.getElementById('an-rrr').innerText = "-";
-        document.getElementById('prob-bar').style.width = "50%"; 
-        document.getElementById('p-t1').innerText = "50%";
-        document.getElementById('p-t2').innerText = "50%";
-    } else {
-        document.getElementById('an-proj').innerText = "-";
-        let remRuns = g.target - g.sc.r;
-        let rrr = remBalls > 0 ? (remRuns / remBalls * 6).toFixed(2) : "0.00";
-        document.getElementById('an-rrr').innerText = rrr;
-    }
-    
-    let ctx = document.getElementById('worm').getContext('2d');
-    if(window.wc) window.wc.destroy();
-    if(!g.worm[0]) g.worm[0] = []; if(!g.worm[1]) g.worm[1] = [];
-    let labels = Array.from({length: g.meta.ov + 1}, (_, i) => i);
-    window.wc = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'Inn1', data: g.worm[0], borderColor: '#3b82f6', fill: false }, { label: 'Inn2', data: g.worm[1], borderColor: '#f59e0b', fill: false } ] }, options: { maintainAspectRatio: false } });
+    if (g.inn === 1) { document.getElementById('an-proj').innerText = proj; document.getElementById('an-rrr').innerText = "-"; } else { document.getElementById('an-proj').innerText = "-"; let remRuns = g.target - g.sc.r; let rrr = remBalls > 0 ? (remRuns / remBalls * 6).toFixed(2) : "0.00"; document.getElementById('an-rrr').innerText = rrr; }
+    let ctx = document.getElementById('worm').getContext('2d'); if(window.wc) window.wc.destroy(); if(!g.worm[0]) g.worm[0] = []; if(!g.worm[1]) g.worm[1] = []; let labels = Array.from({length: g.meta.ov + 1}, (_, i) => i); window.wc = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [ { label: 'Inn1', data: g.worm[0], borderColor: '#3b82f6', fill: false }, { label: 'Inn2', data: g.worm[1], borderColor: '#f59e0b', fill: false } ] }, options: { maintainAspectRatio: false } });
 }
 function renderCard() { 
-    let h = "";
-    const tbl = (inn, name) => {
-        if(!inn) return "";
-        let t = `<h3 style='color:var(--gold); margin-top:20px'>${name} (${inn.sc.r}/${inn.sc.w})</h3><table>`;
-        inn.bats.forEach(b => {
-            let outTxt = b.out ? `<span style='color:var(--danger); font-size:0.8rem;'>${b.how || 'out'}</span>` : "<span style='color:var(--accent);'>not out</span>";
-            t += `<tr><td>${b.n}<br>${outTxt}</td><td style='text-align:right'><b>${b.r}</b> (${b.b})</td></tr>`;
-        });
-        return t + "</table>";
-    };
-    if (g.inn === 1) { h += tbl(g, g.meta.t1); } else { h += tbl(g.inn1, g.inn1.t); h += tbl(g, g.meta.t1); } 
-    document.getElementById('full-card').innerHTML = h;
+    let h = ""; const tbl = (inn, name) => { if(!inn) return ""; let t = `<h3 style='color:var(--gold); margin-top:20px'>${name} (${inn.sc.r}/${inn.sc.w})</h3><table>`; inn.bats.forEach(b => { let outTxt = b.out ? `<span style='color:var(--danger); font-size:0.8rem;'>${b.how || 'out'}</span>` : "<span style='color:var(--accent);'>not out</span>"; t += `<tr><td>${b.n}<br>${outTxt}</td><td style='text-align:right'><b>${b.r}</b> (${b.b})</td></tr>`; }); return t + "</table>"; }; if (g.inn === 1) { h += tbl(g, g.meta.t1); } else { h += tbl(g.inn1, g.inn1.t); h += tbl(g, g.meta.t1); } document.getElementById('full-card').innerHTML = h;
 }
 function save() { let s = JSON.parse(JSON.stringify(g)); delete s.hist; g.hist.push(JSON.stringify(s)); }
 function undo() { if(g.status !== STATUS.LIVE) return; if(g.hist.length) { let h = g.hist; g = JSON.parse(h.pop()); g.hist = h; updateUI(); } }
 function mod(type) { if (g.status !== STATUS.LIVE && type !== 'act') return; document.getElementById('m-' + type).style.display = 'flex'; }
 function closeMod(id) { document.getElementById(id).style.display = 'none'; }
-function renderHist() { document.getElementById('hist-list').innerHTML = (JSON.parse(localStorage.getItem('hist') || '[]')).map(x => `<div class="card"><b>${x.res}</b><br><small>${x.date}</small></div>`).join(''); }
+function renderHist() { document.getElementById('hist-list').innerHTML = (JSON.parse(localStorage.getItem('hist') || '[]')).map(x => `<div class=\"card\"><b>${x.res}</b><br><small>${x.date}</small></div>`).join(''); }
 function wipeHist() { localStorage.removeItem('hist'); renderHist(); }
 function openActions() { document.getElementById('m-act').style.display = 'flex'; }
 </script>
 
 <script type="module">
+// 🔴 FIXED VERSION
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
@@ -341,8 +298,10 @@ window.pushLive = function(g) {
      const remRuns = g.target - g.sc.r;
      rrr = remBalls > 0 ? (remRuns / (remBalls/6)).toFixed(2) : "0.00";
   }
+  
+  // 🔴 CALCULATE PROJ SCORE HERE
+  const projScore = g.inn === 1 ? Math.ceil((g.sc.r / balls) * (g.meta.ov * 6)) : null;
 
-  // 🔴 NEW: Add 'On Strike' flags for the Viewer
   const viewerBats = g.bats.map((b, i) => ({
       ...b,
       onStrike: (i === g.s),
@@ -356,23 +315,17 @@ window.pushLive = function(g) {
     score: { runs: g.sc.r, wickets: g.sc.w, balls: g.sc.b },
     innings: g.inn,
     target: g.target || null,
-    
-    // 🔴 SEND VIEWER-READY BATS DATA
-    currentInnings: {
-        team: g.meta.t1,
-        bats: viewerBats, 
-        bowl: g.bowl
-    },
-    innData: g.inn1 ? [{
-        team: g.inn1.t, 
-        score: g.inn1.sc,
-        bats: g.inn1.bats,
-        bowl: g.inn1.bowl
-    }] : [],
-    
+    currentInnings: { team: g.meta.t1, bats: viewerBats, bowl: g.bowl, activeBowlerIndex: g.cb },
+    innData: g.inn1 ? [{ team: g.inn1.t, score: g.inn1.sc, bats: g.inn1.bats, bowl: g.inn1.bowl }] : [],
     worm: g.worm,
-
-    analysis: { crr: crr, rrr: rrr, remBalls: (g.meta.ov * 6) - g.sc.b, remWkts: (g.meta.lms ? g.meta.pl : g.meta.pl - 1) - g.sc.w },
+    thisOv: g.thisOv,
+    analysis: { 
+        crr: crr, 
+        rrr: rrr, 
+        remBalls: (g.meta.ov * 6) - g.sc.b, 
+        remWkts: (g.meta.lms ? g.meta.pl : g.meta.pl - 1) - g.sc.w,
+        projScore: projScore // 🔴 SENDING PROJ SCORE
+    },
     meta: { ground: g.meta.ground, city: g.meta.city, type: g.meta.type, overs: g.meta.ov },
     updatedAt: Date.now()
   }).catch(e => console.error("Push Error:", e));

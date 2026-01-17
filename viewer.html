@@ -146,7 +146,23 @@
                 scorecardHtml += buildInnings(name, m.currentInnings.team, sc.runs, sc.wickets, sc.balls, m.currentInnings.bats);
             }
 
-            // 🔴 FIX: SAFELY GET 'THIS OVER' ARRAY
+            // 🔴 ACTIVE BOWLER LOGIC
+            let activeBowlerHtml = "";
+            if (m.currentInnings && m.currentInnings.bowl && m.currentInnings.activeBowlerIndex !== undefined) {
+                const b = m.currentInnings.bowl[m.currentInnings.activeBowlerIndex];
+                if(b) {
+                    activeBowlerHtml = `
+                    <div class="card">
+                        <div class="stat-label" style="margin-bottom:5px;">BOWLING NOW</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:bold; font-size:1.1rem; color:#fff;">${b.n}</span>
+                            <span style="color:var(--gold); font-weight:bold;">${b.w}-${b.r} <span style="font-size:0.8rem;color:#999">(${ballToOver(b.b)})</span></span>
+                        </div>
+                    </div>`;
+                }
+            }
+
+            // 🔴 FIX: SAFELY GET 'THIS OVER' ARRAY (Handles Firebase object/array conversion)
             let thisOvArr = [];
             if (m.thisOv) {
                  thisOvArr = Array.isArray(m.thisOv) ? m.thisOv : Object.values(m.thisOv);
@@ -171,6 +187,8 @@
                         ${m.target ? `<div class="stat-box"><div class="stat-label">Target</div><div class="stat-val">${m.target}</div></div>` : ''}
                     </div>
                     
+                    ${activeBowlerHtml}
+
                     <div class="card">
                         <div class="stat-label" style="margin-bottom:10px;">CURRENT OVER</div>
                         <div class="ball-row">
@@ -189,11 +207,17 @@
                 </div>
 
                 <div class="tab-content ${currentTab === 'analysis' ? 'active' : ''}">
+                    <div class="stat-grid">
+                        <div class="stat-box"><div class="stat-label">Proj. Score</div><div class="stat-val">${m.analysis?.projScore || '-'}</div></div>
+                        <div class="stat-box"><div class="stat-label">Req. Rate</div><div class="stat-val" style="color:#f59e0b">${m.analysis?.rrr || '-'}</div></div>
+                        <div class="stat-box"><div class="stat-label">Balls Rem.</div><div class="stat-val">${m.analysis?.remBalls || 0}</div></div>
+                        <div class="stat-box"><div class="stat-label">Wickets Left</div><div class="stat-val">${m.analysis?.remWkts || 10}</div></div>
+                    </div>
                     <div class="card" style="height:300px;"><canvas id="worm"></canvas></div>
                 </div>
             `;
             
-            // Render Worm if on analysis tab (Fixed Logic)
+            // Render Worm if on analysis tab
             if(currentTab === 'analysis') {
                 setTimeout(() => {
                     let ctx = document.getElementById('worm');
